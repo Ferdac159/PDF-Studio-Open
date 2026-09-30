@@ -79,12 +79,10 @@ with tab3:
                         leitor_pdf = PdfReader(arquivo_ocr)
                         for i, pagina in enumerate(leitor_pdf.pages):
                             texto_da_pagina = pagina.extract_text()
-                            # Se o PDF já tiver texto nativo, usa ele. Se for imagem escaneada, tenta rodar OCR.
                             if texto_da_pagina and len(texto_da_pagina.strip()) > 10:
                                 texto_final += f"--- Página {i+1} ---\n{texto_da_pagina}\n\n"
                             else:
                                 texto_final += f"--- Página {i+1} (Aviso: PDF parece ser uma imagem escaneada) ---\n"
-                                # Para rodar OCR em PDF de imagem no servidor do Streamlit, o tesseract lê metadados ou imagens internas
                                 texto_ocr = pytesseract.image_to_string(Image.open(arquivo_ocr), lang='por')
                                 texto_final += texto_ocr + "\n\n"
                     
@@ -103,23 +101,30 @@ with tab3:
                     st.error("Erro no processamento. Para PDFs 100% escaneados como foto, certifique-se de que o motor OCR do servidor esteja ativo.")
 
 # ----------------------------------------------------
-# TAB 4: ASSINATURA DIGITAL (LINK EXTERNO GRATUITO)
+# TAB 4: ASSINATURA DIGITAL (AUTENTIQUE & SIGNDOCS)
 # ----------------------------------------------------
 with tab4:
     st.header("✍️ Assinatura Eletrônica e Envio para o Cliente")
     st.write("""
-    Para que seu cliente assine o documento com **validade jurídica legal**, integramos o fluxo às principais ferramentas gratuitas de mercado. 
-    Escolha uma das plataformas oficiais abaixo para fazer o upload do documento gerado e coletar a assinatura do cliente:
+    Para coletar a assinatura do seu cliente com **validade jurídica integral**, utilize as plataformas nacionais integradas abaixo. 
+    Faça o upload do PDF que você acabou de gerar ou mesclar diretamente nelas:
     """)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.info("**Opção 1: ZapSign (Recomendado)**")
-        st.write("Plataforma brasileira simples que envia o link de assinatura direto por WhatsApp ou E-mail.")
-        st.markdown("[Acessar ZapSign Grátis](https://zapsign.com.br 'ZapSign')")
+        st.info("**Opção 1: Autentique**")
+        st.write("""
+        * **Plano Grátis:** Até 10 documentos por mês.
+        * **Diferencial:** Permite signatários ilimitados e envios práticos por e-mail ou link.
+        * **Plano Profissional:** Documentos ilimitados por valor fixo mensal.
+        """)
+        st.markdown("[Acessar Autentique](https://www.autentique.com.br/ 'Autentique')")
         
     with col2:
-        st.info("**Opção 2: Adobe Sign / Acrobat Online**")
-        st.write("A ferramenta oficial da Adobe permite solicitar assinaturas eletrônicas preenchendo o e-mail do cliente.")
-        st.markdown("[Acessar Adobe Sign Grátis](https://adobe.com 'Adobe Acrobat Sign')")
-
+        st.info("**Opção 2: SignDocs Brasil**")
+        st.write("""
+        * **Plano Grátis:** Até 5 documentos por mês.
+        * **Diferencial:** Inclui assinatura com certificado digital **ICP-Brasil (A1)** gratuitamente em todos os planos.
+        * **Segurança:** Trilha de auditoria completa com geolocalização IP/GPS.
+        """)
+        st.markdown("[Acessar SignDocs Brasil](https://signdocs.com.br/ 'SignDocs Brasil')")
