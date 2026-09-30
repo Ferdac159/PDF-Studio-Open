@@ -1,5 +1,5 @@
 streamlit
-pypdf==5.1.0
+pypdf2
 reportlab
 pytesseract
 Pillow
