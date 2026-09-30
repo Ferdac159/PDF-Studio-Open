@@ -1,5 +1,5 @@
 import streamlit as st
-from pypdf import PdfMerger, PdfReader
+from PyPDF2 import PdfMerger, PdfReader
 from reportlab.pdfgen import canvas
 import io
 import pytesseract
@@ -73,7 +73,6 @@ with tab3:
         if st.button("Executar OCR"):
             with st.spinner("Processando texto..."):
                 try:
-                    # Nota: Exige o Tesseract instalado no ambiente (funciona nativamente em servidores configurados)
                     texto_extraido = pytesseract.image_to_string(imagem, lang='por')
                     st.subheader("Texto Extraído:")
                     st.text_area("Resultado", texto_extraido, height=250)
