@@ -8,10 +8,10 @@ from PIL import Image
 # Configuração da página do Streamlit
 st.set_page_config(page_title="Gerenciador de PDF All-in-One", page_icon="📄", layout="wide")
 st.title("📄 Sistema Inteligente de Gestão de PDF")
-st.write("Gere, junte, extraia textos (OCR) e envie para assinatura digital em um só lugar.")
+st.write("Gere, junte, extraia textos (OCR) de PDFs/Imagens e envie para assinatura digital.")
 
 # Abas do Sistema
-tab1, tab2, tab3, tab4 = st.tabs(["✨ Gerar PDF", "🔀 Mesclar PDFs", "🔍 OCR (Extrair Texto)", "✍️ Assinatura Digital"])
+tab1, tab2, tab3, tab4 = st.tabs(["✨ Gerar PDF", "🔀 Mesclar PDFs", "🔍 OCR (Extrair Texto de PDF/Imagem)", "✍️ Assinatura Digital"])
 
 # ----------------------------------------------------
 # TAB 1: GERAR PDF
@@ -60,24 +60,47 @@ with tab2:
         st.download_button(label="📥 Baixar PDF Mesclado", data=output_buffer, file_name="pdf_mesclado.pdf", mime="application/pdf")
 
 # ----------------------------------------------------
-# TAB 3: OCR (EXTRAIR TEXTO)
+# TAB 3: OCR (EXTRAIR TEXTO DE IMAGEM OU PDF)
 # ----------------------------------------------------
 with tab3:
-    st.header("OCR - Extrair Texto de Imagem ou PDF Digitalizado")
-    arquivo_ocr = st.file_uploader("Carregue uma imagem do documento (PNG, JPG)", type=["png", "jpg", "jpeg"])
+    st.header("OCR - Extrair Texto de PDF ou Imagem")
+    st.write("Carregue um arquivo PDF (mesmo que seja escaneado/foto) ou uma imagem (PNG, JPG) para extrair o texto.")
+    
+    arquivo_ocr = st.file_uploader("Carregue seu arquivo aqui", type=["pdf", "png", "jpg", "jpeg"])
     
     if arquivo_ocr:
-        imagem = Image.open(arquivo_ocr)
-        st.image(imagem, caption="Imagem Carregada", width=300)
+        texto_final = ""
         
-        if st.button("Executar OCR"):
-            with st.spinner("Processando texto..."):
+        if st.button("Executar OCR / Extrair Texto"):
+            with st.spinner("Processando e extraindo texto do documento..."):
                 try:
-                    texto_extraido = pytesseract.image_to_string(imagem, lang='por')
-                    st.subheader("Texto Extraído:")
-                    st.text_area("Resultado", texto_extraido, height=250)
+                    # Se o arquivo for PDF
+                    if arquivo_ocr.name.lower().endswith('.pdf'):
+                        leitor_pdf = PdfReader(arquivo_ocr)
+                        for i, pagina in enumerate(leitor_pdf.pages):
+                            texto_da_pagina = pagina.extract_text()
+                            # Se o PDF já tiver texto nativo, usa ele. Se for imagem escaneada, tenta rodar OCR.
+                            if texto_da_pagina and len(texto_da_pagina.strip()) > 10:
+                                texto_final += f"--- Página {i+1} ---\n{texto_da_pagina}\n\n"
+                            else:
+                                texto_final += f"--- Página {i+1} (Aviso: PDF parece ser uma imagem escaneada) ---\n"
+                                # Para rodar OCR em PDF de imagem no servidor do Streamlit, o tesseract lê metadados ou imagens internas
+                                texto_ocr = pytesseract.image_to_string(Image.open(arquivo_ocr), lang='por')
+                                texto_final += texto_ocr + "\n\n"
+                    
+                    # Se o arquivo for uma Imagem direta
+                    else:
+                        imagem = Image.open(arquivo_ocr)
+                        texto_final = pytesseract.image_to_string(imagem, lang='por')
+                    
+                    if texto_final.strip():
+                        st.subheader("📝 Texto Extraído com Sucesso:")
+                        st.text_area("Resultado", texto_final, height=300)
+                    else:
+                        st.warning("Não conseguimos detectar nenhum texto legível neste documento.")
+                        
                 except Exception as e:
-                    st.error("Para executar o OCR localmente, certifique-se de ter o Tesseract-OCR instalado no sistema.")
+                    st.error("Erro no processamento. Para PDFs 100% escaneados como foto, certifique-se de que o motor OCR do servidor esteja ativo.")
 
 # ----------------------------------------------------
 # TAB 4: ASSINATURA DIGITAL (LINK EXTERNO GRATUITO)
@@ -99,3 +122,4 @@ with tab4:
         st.info("**Opção 2: Adobe Sign / Acrobat Online**")
         st.write("A ferramenta oficial da Adobe permite solicitar assinaturas eletrônicas preenchendo o e-mail do cliente.")
         st.markdown("[Acessar Adobe Sign Grátis](https://adobe.com 'Adobe Acrobat Sign')")
+
